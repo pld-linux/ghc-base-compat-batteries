@@ -4,6 +4,7 @@
 #
 %define		pkgname	base-compat-batteries
 Summary:	base-compat with extra batteries
+Summary(pl.UTF-8):	base-compat z dołączonymi bateriami
 Name:		ghc-%{pkgname}
 Version:	0.11.1
 Release:	2
@@ -13,15 +14,20 @@ Group:		Development/Languages
 Source0:	http://hackage.haskell.org/package/%{pkgname}-%{version}/%{pkgname}-%{version}.tar.gz
 # Source0-md5:	c1975c1d453094193426762a9c59f786
 URL:		http://hackage.haskell.org/package/base-compat-batteries
-BuildRequires:	ghc >= 6.12.3
+# for ghc < 8.6 has more dependencies
+BuildRequires:	ghc >= 8.6
+BuildRequires:	ghc-base >= 4.3
+BuildRequires:	ghc-base < 5
 BuildRequires:	ghc-base-compat = 0.11.1
 %if %{with prof}
-BuildRequires:	ghc-prof
+BuildRequires:	ghc-prof >= 8.6
+BuildRequires:	ghc-base-prof >= 4.3
 BuildRequires:	ghc-base-compat-prof = 0.11.1
 %endif
 BuildRequires:	rpmbuild(macros) >= 1.608
 %requires_eq	ghc
 Requires(post,postun):	/usr/bin/ghc-pkg
+Requires:	ghc-base >= 4.3
 Requires:	ghc-base-compat = 0.11.1
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -45,11 +51,26 @@ exist versions of each module with the suffix .Repl.Batteries, which
 are distinct from anything in base-compat, to allow for easier use in
 GHCi.
 
+%description -l pl.UTF-8
+Ta biblioteka dostarcza funkcje dostępne w nowszych wersjach
+biblioteki bazowej dla szerszego zakresu kompilatorów bez konieczności
+używania dyrektyw CCP w kodzie.
+
+Ten pakiet udostępnia to samo API, co biblioteka base-compat, ale
+zależy od pakietów zgodności (takich jak semigroups), aby zaoferować
+szersze okno obsługiwanych wersji niż base-compat, która nie ma
+zależności. Większość modułów w tej bibliotece ma te same nazwy, co w
+base-compat, aby ułatwić przełączanie między nimi. Istnieją także
+wersje każdego modułu z przyrostkiem .Repl.Batteries, które nie
+pokrywają się z niczym w base-compat, aby umożliwić łatwiejsze użycie
+w GHCi.
+
 %package prof
 Summary:	Profiling %{pkgname} library for GHC
 Summary(pl.UTF-8):	Biblioteka profilująca %{pkgname} dla GHC
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
+Requires:	ghc-base-prof >= 4.3
 Requires:	ghc-base-compat-prof = 0.11.1
 
 %description prof
@@ -72,6 +93,7 @@ runhaskell Setup.lhs configure -v2 \
 	--docdir=%{_docdir}/%{name}-%{version}
 
 runhaskell Setup.lhs build
+
 runhaskell Setup.lhs haddock --executables
 
 %install
@@ -106,7 +128,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc CHANGES.markdown README.markdown %{name}-%{version}-doc/*
 %{_libdir}/%{ghcdir}/package.conf.d/%{pkgname}.conf
-%{_libdir}/%{ghcdir}/%{pkgname}-%{version}/*.so
+%attr(755,root,root) %{_libdir}/%{ghcdir}/%{pkgname}-%{version}/*.so
 %{_libdir}/%{ghcdir}/%{pkgname}-%{version}/*.a
 %exclude %{_libdir}/%{ghcdir}/%{pkgname}-%{version}/*_p.a
 
